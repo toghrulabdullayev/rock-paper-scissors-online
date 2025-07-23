@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@layer base {
+  @font-face {
+    font-family: Barlow Semi Condensed;
+    font-weight: 600;
+    src: url(assets/fonts/Barlow_Semi_Condensed/BarlowSemiCondensed-SemiBold.ttf);
+  }
+  @font-face {
+    font-family: Barlow Semi Condensed;
+    font-weight: 700;
+    src: url(assets/fonts/Barlow_Semi_Condensed/BarlowSemiCondensed-Bold.ttf);
+  }
+}
+
+@theme {
+  --font-barlow: Barlow Semi Condensed, sans-serif;
+  --color-dark-text: hsl(229, 25%, 31%);
+  --color-gray-text: #818fa6;
+  --color-score-text: hsl(229, 64%, 46%);
+  --color-header-outline: hsl(217, 16%, 45%);
+  --breakpoint-custom: 500px;
+}
+
+@utility bg-image {
+  background-image: radial-gradient(hsl(214, 47%, 23%), hsl(237, 49%, 15%));
+}
+
+@utility bg-rock {
+  background-image: linear-gradient(hsl(349, 71%, 52%), hsl(349, 70%, 56%));
+}
+
+@utility bg-paper {
+  background-image: linear-gradient(hsl(230, 89%, 62%), hsl(230, 89%, 65%));
+}
+
+@utility bg-scissors {
+  background-image: linear-gradient(hsl(39, 89%, 49%), hsl(40, 84%, 53%));
+}
+
+@utility bg-lizard {
+  background-image: linear-gradient(hsl(261, 73%, 60%), hsl(261, 72%, 63%));
+}
+
+@utility bg-spock {
+  background-image: linear-gradient(hsl(189, 59%, 53%), hsl(189, 58%, 57%));
+}
+
+@utility border-rock {
+  border-color: hsl(347, 75%, 35%);
+}
+
+@utility border-paper {
+  border-color: hsl(229, 66%, 45%);
+}
+
+@utility border-scissors {
+  border-color: hsl(28, 79%, 44%);
+}
+
+@utility border-lizard {
+  border-color: hsl(261, 51%, 44%);
+}
+
+@utility border-spock {
+  border-color: hsl(194, 59%, 43%);
+}
+
+@utility bg-pentagon {
+  background-image: url(assets/images/bg-pentagon.svg);
+}
+
+textarea::-webkit-scrollbar {
+  display: none;
+}
