@@ -7,7 +7,6 @@ import { settings, updateProfile } from "../util/http";
 import Input from "../ui/Input";
 import Button from "../ui/Button";
 import TextArea from "../ui/TextArea";
-import { useEffect } from "react";
 
 const SettingsPage = () => {
   const navigate = useNavigate();

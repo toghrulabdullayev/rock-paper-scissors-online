@@ -8,6 +8,7 @@ import GameBoard from "../components/GameBoard";
 import Round from "../components/Round";
 import Button from "../ui/Button";
 import { gameActions } from "../store/game";
+import rulesImg from "/src/assets/images/image-rules-bonus.svg";
 
 const Cpu = () => {
   const dialogRef = useRef();
@@ -33,7 +34,11 @@ const Cpu = () => {
     <>
       <div className="flex flex-col justify-center items-center">
         <AnimatePresence>
-          {isOpen && <Modal ref={dialogRef} setIsOpen={setIsOpen} />}
+          {isOpen && (
+            <Modal ref={dialogRef} title="Rules" setIsOpen={setIsOpen}>
+              <img src={rulesImg} alt="rules-img" className="mt-4" />
+            </Modal>
+          )}
         </AnimatePresence>
 
         {!selectedMove ? <GameBoard /> : <Round move={selectedMove} />}

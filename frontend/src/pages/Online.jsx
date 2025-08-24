@@ -1,16 +1,15 @@
-// import { Suspense } from "react";
-
-// import { useQuery } from "@tanstack/react-query";
-// import { Await, useLoaderData } from "react-router-dom";
-
 import { useLayoutEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+// import { useQuery } from "@tanstack/react-query";
 
-import { authStatus } from "../util/http";
+import { authStatus, /* online */ } from "../util/http";
+import RoomsList from "../components/RoomsList";
+import { createSocket } from "../util/socket";
 
 // u need tanstack query asap
 const Online = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [socket, setSocket] = useState(null);
   const navigate = useNavigate();
 
   useLayoutEffect(() => {
@@ -18,6 +17,8 @@ const Online = () => {
       setIsCheckingAuth(true);
       try {
         await authStatus();
+        const s = createSocket();
+        setSocket(s);
       } catch (error) {
         console.log(error);
         navigate("/auth?mode=login", { state: { isAuthChecked: true } });
@@ -26,9 +27,27 @@ const Online = () => {
     };
 
     isAuth();
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+        setSocket(null);
+      }
+    };
   }, [navigate]);
 
-  return isCheckingAuth ? <div>Checking Auth</div> : <h1>Online Page</h1>;
+  // const { data, status } = useQuery({
+  //   queryKey: ["online"],
+  //   queryFn: ({ signal }) => online(signal),
+  //   refetchOnWindowFocus: false,
+  //   refetchOnMount: false,
+  // });
+
+  return (
+    <div className="mt-16 flex flex-col justify-between items-center h-fit bg-red-500">
+      {isCheckingAuth ? <div>Checking Auth</div> : <RoomsList />}
+    </div>
+  );
 };
 
 export default Online;
