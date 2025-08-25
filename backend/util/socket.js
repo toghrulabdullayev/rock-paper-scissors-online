@@ -3,6 +3,19 @@ import { createServer } from "node:http";
 import { Server } from "socket.io";
 import crypto from "node:crypto";
 
+//* Disconnect the socket code
+// export const disconnectUser = (userId) => {
+//   const sockets = userSockets.get(userId);
+//   if (!sockets) return;
+
+//   for (const socketId of sockets) {
+//     const s = io.sockets.sockets.get(socketId);
+//     s?.disconnect(true); // force disconnect
+//   }
+
+//   userSockets.delete(userId);
+// };
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
@@ -55,6 +68,21 @@ io.use(async (socket, next) => {
 });
 
 io.on("connection", (socket) => {
+  // socket.use((packet, next) => {
+  //   // The packet is an array: [eventName, ...args]
+  //   const eventName = packet[0];
+
+  //   if (/* GPT, LOOK HERE, HOW TO CHECK FOR AUTH */true) {
+  //     console.log(
+  //       `Dropping unauthorized event: ${eventName} from ${socket.id}`
+  //     );
+  //     // Do not call next(), which discards the event and prevents it from reaching your listeners
+  //     return;
+  //   }
+
+  //   next();
+  // });
+
   console.log("A user connected:", socket.id);
 
   // get rooms list whenever connected

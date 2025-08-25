@@ -1,55 +1,59 @@
-// import { io } from "socket.io-client";
+import { useEffect } from "react";
+import { io } from "socket.io-client";
+import { useDispatch } from "react-redux";
+import { authActions } from "../store/authSlice"; // adjust to your slice
 
-// const socket = io("url");
+let socket = null;
 
-// const useSocket = () => {
-  // const [messages, setMessages] = useState([]);
-  // const [input, setInput] = useState("");
-  // const [data, setData] = useState("");
-  // useEffect(() => {
-  //   socket.on("broadcast", (data) => {
-  //     setMessages((prev) => [...prev, data]);
-  //   });
-  //   const fetchData = async () => {
-  //     const response = await fetch("url");
-  //     const resData = await response.json();
-  //     setData(resData);
-  //   };
-  //   fetchData();
-  //   return () => {
-  //     socket.off("broadcast");
-  //   };
-  // }, []);
-  // const sendMessage = () => {
-  //   if (input.trim()) {
-  //     socket.emit("message", input);
-  //     setInput("");
-  //   }
-  // };
-  // return (
-  // <div className="p-4">
-  //   <h1 className="text-xl font-semibold font-barlow">{data.message}</h1>
-  //   <div className="my-4">
-  //     {messages.map((msg, index) => (
-  //       <div key={index} className="my-2 p-2 border rounded">
-  //         {msg}
-  //       </div>
-  //     ))}
-  //   </div>
-  //   <div className="font-">
-  //     <input
-  //       type="text"
-  //       value={input}
-  //       onChange={(e) => setInput(e.target.value)}
-  //       className="border p-2"
-  //     />
-  //     <button
-  //       onClick={sendMessage}
-  //       className="ml-2 px-4 py-2 bg-blue-500 text-white"
-  //     >
-  //       Send
-  //     </button>
-  //   </div>
-  // </div>
-  // )
-// };
+const useSocket = () => {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (!socket) {
+      socket = io("http://localhost:3000", {
+        withCredentials: true,
+        autoConnect: false,
+      });
+    }
+
+    // Clean old listeners to avoid duplication
+    socket.removeAllListeners();
+
+    // Attach listeners
+    socket.on("connect", () => {
+      console.log("✅ Connected:", socket.id);
+    });
+
+    socket.on("disconnect", (reason) => {
+      console.log("❌ Disconnected:", reason);
+    });
+
+    socket.on("roomsList", (rooms) => {
+      dispatch(authActions.setRooms(rooms));
+    });
+
+    socket.on("isInRoom", (isUserInRoom) => {
+      dispatch(authActions.setIsInRoom(isUserInRoom));
+    });
+
+    socket.on("beginGame", (isRoomFull) => {
+      dispatch(authActions.setHasBegun(isRoomFull));
+    });
+
+    socket.on("getPlayers", (players) => {
+      dispatch(authActions.setUsers(players));
+    });
+
+    socket.on("gameOver", (state) => {
+      dispatch(authActions.setResults(state));
+    });
+
+    return () => {
+      socket?.removeAllListeners();
+    };
+  }, [dispatch]);
+
+  return socket;
+};
+
+export default useSocket;

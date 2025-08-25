@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import Logo from "/src/assets/images/logo-bonus.svg";
 import CountAnimation from "../ui/CountAnimation";
 import AuthNavlinks from "./AuthNavlinks";
-import LogoutButton from "./LogoutButton";
 import DropDown from "../ui/Dropdown";
 
 const Header = ({ inGame }) => {

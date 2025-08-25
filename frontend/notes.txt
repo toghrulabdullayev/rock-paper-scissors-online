@@ -1,0 +1,1 @@
+(1) "auto" in css will use maximum space/value possible (e.g. margin-left: auto; -> as much ml as possible)

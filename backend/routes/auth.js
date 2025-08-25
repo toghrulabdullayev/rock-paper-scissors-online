@@ -10,15 +10,16 @@ import {
   verifyOTP,
 } from "../controllers/auth.js";
 import { isAuth } from "../middleware/isAuth.js";
+import { isAlreadyAuth } from "../middleware/isAlreadyAuth.js";
 
 const router = Router();
 
 router.get("/status", isAuth, authStatus);
-router.post("/signup", signup);
-router.post("/login", login);
+router.post("/signup", isAlreadyAuth, signup);
+router.post("/login", isAlreadyAuth, login);
 router.post("/logout", logout);
-router.post("/reset", reset);
-router.post("/otp", verifyOTP);
-router.post("/changepassword", changePassword);
+router.post("/reset", isAlreadyAuth, reset);
+router.post("/otp", isAlreadyAuth, verifyOTP);
+router.post("/changepassword", isAlreadyAuth, changePassword);
 
 export default router;

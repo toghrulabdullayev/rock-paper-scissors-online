@@ -1,27 +1,52 @@
 import { io } from "socket.io-client";
 
-let socket;
-
 export const createSocket = () => {
-  // Only create socket if it doesn't exist or is disconnected
-  if (!socket) {
-    socket = io("http://localhost:3000", {
+  // Reuse global socket if it exists (for Vite HMR)
+  const socket =
+    globalThis.socket ||
+    io("http://localhost:3000", {
       withCredentials: true,
-      autoConnect: true,
+      autoConnect: false,
     });
 
-    socket.on("connect", () => {
-      console.log("✅ Connected to server:", socket.id);
-    });
+  // Save socket globally for HMR
+  if (!globalThis.socket) globalThis.socket = socket;
 
-    socket.on("disconnect", (reason) => {
-      console.log("❌ Disconnected from server:", reason);
-    });
+  // Remove previous listeners to avoid duplicates after HMR
+  socket.removeAllListeners();
 
-    socket.on("roomsList", (rooms) => {
-      console.log("Rooms received:", rooms);
-    });
-  }
+  // Re-attach listeners
+  socket.on("connect", () => {
+    console.log("✅ Connected to server:", socket.id);
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log("❌ Disconnected from server:", reason);
+  });
 
   return socket;
+};
+
+const SOCKET_EVENTS = [
+  { eventName: "roomsList", prop: "rooms" },
+  { eventName: "isInRoom", prop: "isInRoom" },
+  { eventName: "beginGame", prop: "hasBegun" },
+  { eventName: "getPlayers", prop: "players" },
+  { eventName: "gameOver", prop: "outcome" },
+];
+
+export const addSocketListeners = (socket, setStateFunc) => {
+  SOCKET_EVENTS.forEach((socketEvent) => {
+    console.log(socketEvent, "listener added successfuly");
+    socket.on(socketEvent.eventName, (data) => {
+      setStateFunc({ prop: socketEvent.prop, data });
+    });
+  });
+};
+
+export const removeSocketListeners = (socket) => {
+  SOCKET_EVENTS.forEach((socketEvent) => {
+    console.log(socketEvent, "listener removed successfuly");
+    socket.off(socketEvent.eventName);
+  });
 };

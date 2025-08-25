@@ -42,6 +42,10 @@ export const isAuth = async (req, res, next) => {
         return next();
       } catch (refreshErr) {
         console.log("Refresh Failed!");
+        // clearing tokens when session is expired
+        res.clearCookie("accessToken");
+        res.clearCookie("refreshToken");
+
         return next({
           status: 403,
           message: "Verification failed",
@@ -50,6 +54,10 @@ export const isAuth = async (req, res, next) => {
     }
   } catch (error) {
     console.log(error);
+    // clearing cookies if something goes wrong
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+
     next(error);
   }
 };

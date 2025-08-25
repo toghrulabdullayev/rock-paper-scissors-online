@@ -5,6 +5,8 @@ import { useDispatch } from "react-redux";
 import Header from "../components/Header";
 import { authStatus } from "../util/http";
 import { authActions } from "../store/auth";
+import { createSocket } from "../util/socket";
+import { onlineActions } from "../store/online";
 
 const Root = () => {
   const location = useLocation();
@@ -14,7 +16,17 @@ const Root = () => {
   useLayoutEffect(() => {
     const isAuth = async () => {
       try {
-        await authStatus();
+        // await authStatus();
+
+        try {
+          // init and set socket to a global state
+          const s = createSocket();
+          dispatch(onlineActions.setSocket(s));
+        } catch (error) {
+          console.log("Socket error");
+          console.error(error);
+        }
+
         dispatch(authActions.setIsAuth(true));
       } catch (error) {
         console.log(error);
@@ -22,6 +34,10 @@ const Root = () => {
     };
 
     isAuth();
+
+    return () => {
+      dispatch(onlineActions.setSocket(null));
+    };
   }, [dispatch]);
 
   return (

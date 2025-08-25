@@ -10,6 +10,13 @@ const store = configureStore({
     auth: authStore.reducer,
     online: onlineStore.reducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActions: ["online/setSocket"],
+        ignoredPaths: ["online.socket"],
+      },
+    }),
 });
 
 export default store;

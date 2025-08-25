@@ -25,5 +25,5 @@ try {
 
   server.listen(3000);
 } catch (error) {
-  throw new Error(error);
+  console.log(error);
 }

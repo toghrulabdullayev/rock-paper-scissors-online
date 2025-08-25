@@ -1,24 +1,31 @@
 import { useLayoutEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 // import { useQuery } from "@tanstack/react-query";
 
-import { authStatus, /* online */ } from "../util/http";
-import RoomsList from "../components/RoomsList";
-import { createSocket } from "../util/socket";
+import { authStatus /* online */ } from "../util/http";
+import { addSocketListeners, removeSocketListeners } from "../util/socket";
+import { onlineActions } from "../store/online";
 
 // u need tanstack query asap
 const Online = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const [socket, setSocket] = useState(null);
+  const { socket } = useSelector((state) => state.online);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   useLayoutEffect(() => {
     const isAuth = async () => {
       setIsCheckingAuth(true);
       try {
-        await authStatus();
-        const s = createSocket();
-        setSocket(s);
+        // await authStatus();
+
+        // add socket listeners if the socket is initialized
+        if (socket) {
+          addSocketListeners(socket, (data) =>
+            dispatch(onlineActions.setStateProp(data))
+          );
+        }
       } catch (error) {
         console.log(error);
         navigate("/auth?mode=login", { state: { isAuthChecked: true } });
@@ -30,11 +37,10 @@ const Online = () => {
 
     return () => {
       if (socket) {
-        socket.disconnect();
-        setSocket(null);
+        removeSocketListeners(socket);
       }
     };
-  }, [navigate]);
+  }, [navigate, socket, dispatch]);
 
   // const { data, status } = useQuery({
   //   queryKey: ["online"],
@@ -44,8 +50,8 @@ const Online = () => {
   // });
 
   return (
-    <div className="mt-16 flex flex-col justify-between items-center h-fit bg-red-500">
-      {isCheckingAuth ? <div>Checking Auth</div> : <RoomsList />}
+    <div className="mt-16 flex flex-col justify-between items-center h-fit">
+      {isCheckingAuth ? <div>Checking Auth</div> : <Outlet />}
     </div>
   );
 };
