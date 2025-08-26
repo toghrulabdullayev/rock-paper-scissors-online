@@ -7,7 +7,10 @@ import ErrorPage from "./pages/Error";
 import RootLayout from "./pages/Root";
 import HomePage from "./pages/Home";
 import CpuPage from "./pages/Cpu";
-import OnlinePage from "./pages/OnlineLayout";
+
+import OnlineLayout from "./pages/OnlineLayout";
+import LobbyPage from "./pages/LobbyPage";
+import RoomPage from "./pages/RoomPage";
 
 import AuthLayout from "./pages/Auth";
 import AuthPage from "./pages/AuthPage";
@@ -15,8 +18,6 @@ import AuthPage from "./pages/AuthPage";
 import ProfileLayout from "./pages/ProfileLayout";
 import UserPage from "./pages/User";
 import SettingsPage from "./pages/SettingsPage";
-import LobbyPage from "./pages/LobbyPage";
-import RoomPage from "./pages/RoomPage";
 
 const queryClient = new QueryClient();
 
@@ -30,7 +31,7 @@ const routes = createBrowserRouter([
       { path: "cpu", element: <CpuPage /> },
       {
         path: "online",
-        element: <OnlinePage />,
+        element: <OnlineLayout />,
         children: [
           { index: true, element: <LobbyPage /> },
           { path: ":roomId", element: <RoomPage /> },

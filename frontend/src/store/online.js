@@ -31,6 +31,7 @@ export const onlineStore = createSlice({
     },
 
     setStateProp: (state, action) => {
+      console.log("Payload:", action.payload);
       state[action.payload.prop] = action.payload.data;
     },
   },

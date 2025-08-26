@@ -34,7 +34,7 @@ export const isAuth = async (req, res, next) => {
         const newAccessToken = generateAccessToken(refreshDecoded.user);
         res.cookie("accessToken", newAccessToken, {
           httpOnly: true,
-          secure: true,
+          secure: process.env.NODE_ENV === "production",
           path: "/",
         });
 

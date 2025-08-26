@@ -1,16 +1,13 @@
 import { useLayoutEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 // import { useQuery } from "@tanstack/react-query";
 
 import { authStatus /* online */ } from "../util/http";
-import { addSocketListeners, removeSocketListeners } from "../util/socket";
-import { onlineActions } from "../store/online";
 
 // u need tanstack query asap
 const Online = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const { socket } = useSelector((state) => state.online);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -19,13 +16,6 @@ const Online = () => {
       setIsCheckingAuth(true);
       try {
         // await authStatus();
-
-        // add socket listeners if the socket is initialized
-        if (socket) {
-          addSocketListeners(socket, (data) =>
-            dispatch(onlineActions.setStateProp(data))
-          );
-        }
       } catch (error) {
         console.log(error);
         navigate("/auth?mode=login", { state: { isAuthChecked: true } });
@@ -34,13 +24,7 @@ const Online = () => {
     };
 
     isAuth();
-
-    return () => {
-      if (socket) {
-        removeSocketListeners(socket);
-      }
-    };
-  }, [navigate, socket, dispatch]);
+  }, [navigate, dispatch]);
 
   // const { data, status } = useQuery({
   //   queryKey: ["online"],
@@ -50,9 +34,9 @@ const Online = () => {
   // });
 
   return (
-    <div className="mt-16 flex flex-col justify-between items-center h-fit">
-      {isCheckingAuth ? <div>Checking Auth</div> : <Outlet />}
-    </div>
+    // <div className="mt-16 flex flex-col justify-between items-center h-fit bg-cyan-500">
+    isCheckingAuth ? <div>Checking Auth</div> : <Outlet />
+    // </div>
   );
 };
 

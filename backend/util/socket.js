@@ -275,7 +275,7 @@ const addUserDataToRoom = (socket, roomId) => {
   // chaos
   rooms[findRoomIndex(roomId)].users.push({
     userId: users[socket.id],
-    score: 2,
+    score: 0,
     gesture: null,
   });
 };

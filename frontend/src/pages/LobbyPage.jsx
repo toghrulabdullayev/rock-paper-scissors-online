@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
-import { Link } from "react-router-dom";
-import { AnimatePresence } from "motion/react";
+import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { AnimatePresence } from "motion/react";
 
 import Button from "../ui/Button";
 import Modal from "../components/Modal";
+import Cpu from "./Cpu";
 
 const ROUNDS = [1, 3, 5, 7, 9, 11];
 
@@ -13,8 +14,11 @@ const LobbyPage = () => {
   const dialogRef = useRef();
   const [isOpen, setIsOpen] = useState(false);
   const [rounds, setRounds] = useState(3);
+  // const navigate = useNavigate();
 
-  const { socket, rooms } = useSelector((state) => state.online);
+  const { socket, rooms, isInRoom, hasBegun } = useSelector(
+    (state) => state.online
+  );
 
   const handleIsOpen = () => {
     setTimeout(() => {
@@ -32,7 +36,11 @@ const LobbyPage = () => {
     socket.emit("joinRoomById", room.roomId);
   };
 
-  return (
+  const handleLeaveRoom = () => {
+    socket.emit("leaveRoom");
+  };
+
+  return !isInRoom ? (
     <>
       <AnimatePresence>
         {isOpen && (
@@ -83,6 +91,15 @@ const LobbyPage = () => {
           ))}
       </div>
     </>
+  ) : !hasBegun ? (
+    <>
+      <h1>Waiting for another player to join...</h1>
+      <Button className="mt-8" onClick={handleLeaveRoom}>
+        Leave
+      </Button>
+    </>
+  ) : (
+    <Cpu />
   );
 };
 
