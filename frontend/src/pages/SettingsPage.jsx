@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import ImagePicker from "../components/ImagePicker";
@@ -9,6 +10,8 @@ import Button from "../ui/Button";
 import TextArea from "../ui/TextArea";
 
 const SettingsPage = () => {
+  // const { username } = useSelector((state) => state.auth.user);
+  const username = "toghrul"
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -23,7 +26,7 @@ const SettingsPage = () => {
     mutationFn: updateProfile,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["settings"] });
-      navigate("/profile/toghrul");
+      navigate(`/profile/${username}`);
     },
     onError: (error) => {
       console.error(error.message);

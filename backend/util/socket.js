@@ -27,19 +27,21 @@ const io = new Server(server, {
   },
 });
 
-let userId = 1;
-
 // socket.id associated with userId ({socketId: userId}) ✅
-const users = {};
+// const users = {};
+const userSocketMap = {};
+const socketUserMap = {};
 
-// {roomId, users: [{userId, score}]} ✅
+// {roomId, score, users: [{userId, score, gesture}]} ✅
 const rooms = [];
 
 // ez
 const wins = {
-  rock: "scissors",
-  paper: "rock",
-  scissors: "paper",
+  rock: ["lizard", "scissors"],
+  scissors: ["paper", "lizard"],
+  lizard: ["spock", "paper"],
+  paper: ["rock", "spock"],
+  spock: ["scissors", "rock"],
 };
 
 //* you can send request from the backend to the same backend
@@ -83,16 +85,20 @@ io.on("connection", (socket) => {
   //   next();
   // });
 
+  console.log("Socket user:", socket.user);
   console.log("A user connected:", socket.id);
+  socket.joinedRoom = null;
+
+  const userId = socket.user._id;
 
   // get rooms list whenever connected
   const availableRooms = rooms.filter((room) => room.users.length < 2);
   io.emit("roomsList", availableRooms);
 
   // binding socket.id with userId (imitating userId)
-  users[socket.id] = userId;
-  userId += 1;
-  console.log("Users:", users);
+  userSocketMap[userId] = socket.id;
+  socketUserMap[socket.id] = userId;
+  console.log("Users:", userSocketMap);
 
   // sending a msg
   socket.on("hello", (arg) => {
@@ -105,21 +111,30 @@ io.on("connection", (socket) => {
       socket.emit("hello", arg);
     }
     // rooms of the userId - set {} (1st room - socket.id (private room); 2nd room - custom roomId)
-    console.log("Rooms of the", users[socket.id], socket.rooms);
+    console.log("Rooms of the", socketUserMap[socket.id], socket.rooms);
   });
 
-  socket.on("joinRoom", () => {
+  socket.on("joinRoom", (score) => {
     if (canJoinRoom(socket)) {
       // 12 character roomId
       const roomId = crypto.randomBytes(6).toString("hex");
 
       socket.join(roomId);
+      socket.joinedRoom = roomId;
       console.log("Joined the room:", roomId);
 
       // updating list of rooms
       rooms.push({
         roomId,
-        users: [{ userId: users[socket.id], score: 0, gesture: null }],
+        score,
+        users: [
+          {
+            userId: socket.user._id,
+            username: socket.user.username,
+            score: 0,
+            gesture: null,
+          },
+        ],
       });
       const availableRooms = rooms.filter((room) => room.users.length < 2);
       io.emit("roomsList", availableRooms);
@@ -138,6 +153,7 @@ io.on("connection", (socket) => {
       isValidRoomId(roomId)
     ) {
       socket.join(roomId);
+      socket.joinedRoom = roomId;
 
       // adding user data to a room (userId and score)
       addUserDataToRoom(socket, roomId);
@@ -163,13 +179,16 @@ io.on("connection", (socket) => {
     const roomId = [...socket.rooms][1];
     const room = rooms[findRoomIndex(roomId)];
 
-    const player = room.users.find((user) => user.userId === users[socket.id]);
-    const opponent = room.users.find(
-      (user) => user.userId !== users[socket.id]
-    );
+    const player = room.users.find((user) => user.userId === socket.user._id);
+    if (player.gesture) {
+      return;
+    }
+    const opponent = room.users.find((user) => user.userId !== socket.user._id);
+
+    console.log("Player", player);
 
     player.gesture = gesture;
-    console.log(room);
+    console.log("room", room);
 
     let isGestureNull = room.users.some((user) => !user.gesture);
 
@@ -178,40 +197,43 @@ io.on("connection", (socket) => {
       console.log("Opponent:", opponent);
 
       console.log("ROUND");
+      sendPlayersOrdered(roomId);
+
+      // delayed effect
+      setTimeout(() => {
+        sendPlayersOrdered(roomId);
+      }, 2500);
+
       if (player.gesture === opponent.gesture) {
         console.log("tie");
-      } else if (wins[player.gesture] === opponent.gesture) {
+      } else if (wins[player.gesture].includes(opponent.gesture)) {
         console.log(player.userId, "won");
         player.score += 1;
-      } else if (wins[player.gesture] !== opponent.gesture) {
+      } else if (!wins[player.gesture].includes(opponent.gesture)) {
         console.log(opponent.userId, "won");
         opponent.score += 1;
       }
 
-      player.gesture = null;
-      opponent.gesture = null;
-      sendPlayersOrdered(roomId);
-
-      if (player.score >= 5 || opponent.score >= 5) {
+      if (player.score >= room.score || opponent.score >= room.score) {
         // similar strategy as the sendPlayersOrdered function below
         for (const roomPlayer of room.users) {
-          const socketId = Object.keys(users).find(
-            (id) => users[id] === roomPlayer.userId
+          const socketId = Object.keys(socketUserMap).find(
+            (id) => socketUserMap[id] === roomPlayer.userId
           );
           if (!socketId) continue;
 
           // long story
           let outcome;
           if (player.score > opponent.score) {
-            if (player.userId === users[socketId]) {
+            if (player.userId === socketUserMap[socketId]) {
               outcome = "You won!";
-            } else if (opponent.userId === users[socketId]) {
+            } else if (opponent.userId === socketUserMap[socketId]) {
               outcome = "You lost!";
             }
           } else {
-            if (player.userId === users[socketId]) {
+            if (player.userId === socketUserMap[socketId]) {
               outcome = "You lost!";
-            } else if (opponent.userId === users[socketId]) {
+            } else if (opponent.userId === socketUserMap[socketId]) {
               outcome = "You won!";
             }
           }
@@ -219,6 +241,14 @@ io.on("connection", (socket) => {
           io.to(socketId).emit("gameOver", outcome);
         }
       }
+
+      // nextRound
+      setTimeout(() => {
+        player.gesture = null;
+        opponent.gesture = null;
+        sendPlayersOrdered(roomId);
+        io.to(roomId).emit("nextRound");
+      }, 5000);
     }
   });
 
@@ -228,6 +258,7 @@ io.on("connection", (socket) => {
       // Set can't be accessed via indexing
       removeUserFromRoom(socket, roomId);
       socket.leave(roomId);
+      socket.joinedRoom = null;
 
       console.log(rooms[findRoomIndex(roomId)]);
 
@@ -241,13 +272,18 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    console.log(socket.joinedRoom);
     if (isUserInRoom(socket)) {
-      const roomId = [...socket.rooms][1];
-      removeUserFromRoom(socket, roomId);
+      const roomId = socket.joinedRoom;
+      if (!isRoomFull(roomId)) {
+        console.log("Disconnected from the room!");
+        removeUserFromRoom(socket, roomId);
+        console.log(rooms[findRoomIndex(roomId)]);
+      }
     }
 
     console.log("User disconnected:", socket.id);
-    delete users[socket.id];
+    delete socketUserMap[socket.id];
 
     socket.emit("isInRoom", false);
 
@@ -268,13 +304,15 @@ const canJoinRoom = (socket) => {
 
 const isUserInRoom = (socket) => {
   // if socket.rooms contains socket.id and a custom room as only 2 elements
-  return socket.rooms.size === 2;
+  // return socket.rooms.size === 2;
+  return !!socket.joinedRoom;
 };
 
 const addUserDataToRoom = (socket, roomId) => {
   // chaos
   rooms[findRoomIndex(roomId)].users.push({
-    userId: users[socket.id],
+    userId: socket.user._id,
+    username: socket.user.username,
     score: 0,
     gesture: null,
   });
@@ -300,7 +338,7 @@ const isRoomFull = (roomId) => {
 const removeUserFromRoom = (socket, roomId) => {
   rooms[findRoomIndex(roomId)].users = rooms[
     findRoomIndex(roomId)
-  ].users.filter((user) => user.userId !== users[socket.id]);
+  ].users.filter((user) => user.userId !== socketUserMap[socket.id]);
 };
 
 const findRoomIndex = (roomId) => {
@@ -313,8 +351,8 @@ const sendPlayersOrdered = (roomId) => {
   if (!room) return;
 
   for (const player of room.users) {
-    const socketId = Object.keys(users).find(
-      (id) => users[id] === player.userId
+    const socketId = Object.keys(socketUserMap).find(
+      (id) => socketUserMap[id] === player.userId
     );
     if (!socketId) continue;
 

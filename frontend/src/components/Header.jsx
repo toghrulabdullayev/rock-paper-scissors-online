@@ -6,8 +6,11 @@ import CountAnimation from "../ui/CountAnimation";
 import AuthNavlinks from "./AuthNavlinks";
 import DropDown from "../ui/Dropdown";
 
-const Header = ({ inGame }) => {
+const Header = ({ inGame, inOnlineGame }) => {
+  const { players } = useSelector((state) => state.online);
   const { isAuth } = useSelector((state) => state.auth);
+
+  console.log("Players:", players);
 
   return (
     <header
@@ -15,20 +18,39 @@ const Header = ({ inGame }) => {
         inGame ? "max-w-[720px]" : ""
       }`}
     >
-      <Link to="/" className="mt-1">
-        <img src={Logo} alt="logo" className="max-custom:w-18" />
-      </Link>
-      {inGame ? (
-        <div className="bg-white px-10 py-2 rounded-lg max-custom:px-5">
-          <h1 className="uppercase text-score-text tracking-widest text-center max-custom:text-xs">
-            Score
-          </h1>
-          <CountAnimation />
-        </div>
+      {!inOnlineGame ? (
+        <>
+          <Link to="/" className="mt-1">
+            <img src={Logo} alt="logo" className="max-custom:w-18" />
+          </Link>
+          {inGame ? (
+            <div className="bg-white px-10 py-2 rounded-lg max-custom:px-5">
+              <h1 className="uppercase text-score-text tracking-widest text-center max-custom:text-xs">
+                Score
+              </h1>
+              <CountAnimation />
+            </div>
+          ) : (
+            <div className="flex gap-5">
+              {isAuth ? <DropDown /> : <AuthNavlinks />}
+            </div>
+          )}
+        </>
       ) : (
-        <div className="flex gap-5">
-          {isAuth ? <DropDown /> : <AuthNavlinks />}
-        </div>
+        <>
+          {players &&
+            players.map((player) => (
+              <div
+                key={player.username}
+                className="bg-white px-10 py-2 rounded-lg max-custom:px-5"
+              >
+                <h1 className="uppercase text-score-text tracking-widest text-center max-custom:text-xs">
+                  {player.username}
+                </h1>
+                <CountAnimation playerScore={player.score} />
+              </div>
+            ))}
+        </>
       )}
     </header>
   );

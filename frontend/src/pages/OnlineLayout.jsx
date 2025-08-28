@@ -3,7 +3,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 // import { useQuery } from "@tanstack/react-query";
 
-import { authStatus /* online */ } from "../util/http";
+import { authStatus } from "../util/http";
 
 // u need tanstack query asap
 const Online = () => {
@@ -15,7 +15,7 @@ const Online = () => {
     const isAuth = async () => {
       setIsCheckingAuth(true);
       try {
-        // await authStatus();
+        await authStatus();
       } catch (error) {
         console.log(error);
         navigate("/auth?mode=login", { state: { isAuthChecked: true } });
@@ -33,11 +33,7 @@ const Online = () => {
   //   refetchOnMount: false,
   // });
 
-  return (
-    // <div className="mt-16 flex flex-col justify-between items-center h-fit bg-cyan-500">
-    isCheckingAuth ? <div>Checking Auth</div> : <Outlet />
-    // </div>
-  );
+  return isCheckingAuth ? <div>Checking Auth</div> : <Outlet />;
 };
 
 export default Online;

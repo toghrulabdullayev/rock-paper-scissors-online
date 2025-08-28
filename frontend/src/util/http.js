@@ -128,6 +128,20 @@ export const changePassword = async (userData) => {
 };
 
 // profile
+export const myProfile = async () => {
+  const response = await fetch(`http://localhost:3000/api/v1/profile/`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Something went wrong.");
+  }
+
+  const data = await response.json();
+  return data;
+};
+
 export const userProfile = async (signal, username) => {
   const response = await fetch(
     `http://localhost:3000/api/v1/profile/${username}`,

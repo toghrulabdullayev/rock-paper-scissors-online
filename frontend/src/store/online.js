@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// import { WINS } from "../constants/gestures";
+import { WINS } from "../constants/gestures";
 
 const initialState = {
   socket: null,
@@ -9,6 +9,9 @@ const initialState = {
   hasBegun: false,
   players: [],
   outcome: null,
+
+  playerMove: null,
+  winner: null,
 };
 // const initialState = {
 //   move: null,
@@ -34,29 +37,33 @@ export const onlineStore = createSlice({
       console.log("Payload:", action.payload);
       state[action.payload.prop] = action.payload.data;
     },
-  },
-  // reducers: {
-  //   selectMoveOnline: (state, action) => {
-  //     state.move = action.payload;
-  //   },
-  //   playAgainOnline: (state) => {
-  //     state.move = null;
-  //     state.winner = null;
-  //   },
-  //   defineWinnerOnline: (state, action) => {
-  //     if (action.payload.move === action.payload.cpuMove) {
-  //       state.winner = "Tie";
-  //     } else if (WINS[action.payload.move].includes(action.payload.cpuMove)) {
-  //       state.score += 1;
-  //       state.winner = "Win";
-  //     } else {
-  //       state.score -= 1;
-  //       state.winner = "Lose";
-  //     }
 
-  //     localStorage.setItem("score", state.score);
-  //   },
-  // },
+    // in-game states
+    selectPlayerMove: (state, action) => {
+      state.playerMove = action.payload;
+    },
+
+    playAgain: (state) => {
+      state.playerMove = null;
+      state.winner = null;
+    },
+
+    defineWinner: (state, action) => {
+      if (action.payload.move === action.payload.opponentMove) {
+        state.winner = "Tie";
+      } else if (
+        WINS[action.payload.move].includes(action.payload.opponentMove)
+      ) {
+        state.score += 1;
+        state.winner = "Win";
+      } else {
+        state.score -= 1;
+        state.winner = "Lose";
+      }
+
+      localStorage.setItem("score", state.score);
+    },
+  },
 });
 
 export const onlineActions = onlineStore.actions;

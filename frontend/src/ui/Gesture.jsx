@@ -1,16 +1,30 @@
 import { motion } from "motion/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
 
+// import { onlineActions } from "../store/online";
+import { onlineActions } from "../store/online";
 import { gameActions } from "../store/game";
 
 const Gesture = ({ move, img, styles, position, disabled }) => {
+  const { socket } = useSelector((state) => state.online);
   const dispatch = useDispatch();
+  const location = useLocation();
+
+  const handleMove = () => {
+    if (location.pathname === "/online") {
+      socket.emit("playGesture", move);
+      dispatch(onlineActions.selectPlayerMove(move));
+    } else {
+      dispatch(gameActions.selectMove(move));
+    }
+  };
 
   return (
     <>
       {!disabled ? (
         <motion.button
-          onClick={() => dispatch(gameActions.selectMove(move))}
+          onClick={handleMove}
           className={`
             flex justify-center items-center relative border-b-6 ${styles} ${position} p-2.5 w-17 
             h-16.5 scale-120 rounded-full overflow-hidden box-content cursor-pointer

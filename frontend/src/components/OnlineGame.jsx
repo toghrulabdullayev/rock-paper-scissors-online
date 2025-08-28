@@ -1,27 +1,18 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import { AnimatePresence } from "motion/react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 
 import Modal from "../components/Modal";
 import GameBoard from "../components/GameBoard";
-import Round from "../components/Round";
+import OnlineRound from "./OnlineRound";
 import Button from "../ui/Button";
-import { gameActions } from "../store/game";
 import rulesImg from "/src/assets/images/image-rules-bonus.svg";
 
-const Cpu = () => {
+const OnlineGame = () => {
   const dialogRef = useRef(); // for Modal
   const [isOpen, setIsOpen] = useState(false); // for Modal
-  const selectedMove = useSelector((state) => state.game.move);
-  const dispatch = useDispatch();
-
-  useEffect(
-    () => () => {
-      dispatch(gameActions.playAgain());
-    },
-    [dispatch]
-  );
+  const selectedMove = useSelector((state) => state.online.playerMove);
 
   const handleIsOpen = () => {
     setTimeout(() => {
@@ -41,7 +32,7 @@ const Cpu = () => {
           )}
         </AnimatePresence>
 
-        {!selectedMove ? <GameBoard /> : <Round move={selectedMove} />}
+        {!selectedMove ? <GameBoard /> : <OnlineRound move={selectedMove} />}
       </div>
 
       <p className="mb-8 text-end max-md:text-center max-md:mt-16">
@@ -51,4 +42,4 @@ const Cpu = () => {
   );
 };
 
-export default Cpu;
+export default OnlineGame;

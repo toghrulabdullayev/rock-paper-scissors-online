@@ -11,8 +11,10 @@ import {
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export const authStatus = (_, res) => {
-  res.status(200).json({ message: "User authorized successfully" });
+export const authStatus = (req, res) => {
+  res
+    .status(200)
+    .json({ message: "User authorized successfully", user: req.user });
 };
 
 export const signup = async (req, res, next) => {
@@ -51,7 +53,6 @@ export const signup = async (req, res, next) => {
 
     const jwtPayload = {
       _id: newUser._id,
-      email: newUser.email,
       username: newUser.username,
     };
 
@@ -122,7 +123,6 @@ export const login = async (req, res, next) => {
 
     const jwtPayload = {
       _id: user._id,
-      email: user.email,
       username: user.username,
     };
 

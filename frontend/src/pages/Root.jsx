@@ -3,7 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 
 import Header from "../components/Header";
-import { authStatus } from "../util/http";
+import { authStatus, myProfile } from "../util/http";
 import { authActions } from "../store/auth";
 import {
   createSocket,
@@ -13,7 +13,7 @@ import {
 import { onlineActions } from "../store/online";
 
 const Root = () => {
-  const { socket } = useSelector((state) => state.online);
+  const { socket, hasBegun } = useSelector((state) => state.online);
   const location = useLocation();
   const dispatch = useDispatch();
 
@@ -21,7 +21,10 @@ const Root = () => {
   useLayoutEffect(() => {
     const isAuth = async () => {
       try {
-        // await authStatus();
+        await authStatus();
+        // const data = await myProfile();
+        // dispatch(authActions.setUser(data.user));
+
         // add socket listeners if the socket is initialized
         try {
           // init and set socket to a global state
@@ -30,6 +33,7 @@ const Root = () => {
           addSocketListeners(s, (data) =>
             dispatch(onlineActions.setStateProp(data))
           );
+          s.on("nextRound", () => dispatch(onlineActions.playAgain()));
         } catch (error) {
           console.log("Socket error");
           console.error(error);
@@ -58,6 +62,7 @@ const Root = () => {
         inGame={
           location.pathname === "/cpu" || location.pathname === "/lobbyid"
         }
+        inOnlineGame={location.pathname === "/online" && hasBegun}
       />
       <main className="w-[90vw]">
         <Outlet />

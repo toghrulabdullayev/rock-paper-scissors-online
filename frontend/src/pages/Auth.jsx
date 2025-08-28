@@ -17,8 +17,8 @@ function AuthLayout() {
     const isAuth = async () => {
       setIsCheckingAuth(true);
       try {
-        // await authStatus();
-        // navigate("/online");
+        await authStatus();
+        navigate("/online");
       } catch (error) {
         console.log(error);
       }

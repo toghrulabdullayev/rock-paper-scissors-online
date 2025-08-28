@@ -5,7 +5,7 @@ import { AnimatePresence } from "motion/react";
 
 import Button from "../ui/Button";
 import Modal from "../components/Modal";
-import Cpu from "./Cpu";
+import OnlineGame from "../components/OnlineGame";
 
 const ROUNDS = [1, 3, 5, 7, 9, 11];
 
@@ -28,7 +28,7 @@ const LobbyPage = () => {
   };
 
   const handleCreate = () => {
-    socket.emit("joinRoom");
+    socket.emit("joinRoom", rounds);
     setIsOpen(false);
   };
 
@@ -41,7 +41,7 @@ const LobbyPage = () => {
   };
 
   return !isInRoom ? (
-    <>
+    <div className="mt-16 flex flex-col justify-between items-center h-fit bg-cyan-500">
       <AnimatePresence>
         {isOpen && (
           <Modal ref={dialogRef} setIsOpen={setIsOpen} title="New Room">
@@ -90,16 +90,16 @@ const LobbyPage = () => {
             </Button>
           ))}
       </div>
-    </>
+    </div>
   ) : !hasBegun ? (
-    <>
+    <div className="mt-16 flex flex-col justify-between items-center h-fit bg-cyan-500">
       <h1>Waiting for another player to join...</h1>
       <Button className="mt-8" onClick={handleLeaveRoom}>
         Leave
       </Button>
-    </>
+    </div>
   ) : (
-    <Cpu />
+    <OnlineGame />
   );
 };
 

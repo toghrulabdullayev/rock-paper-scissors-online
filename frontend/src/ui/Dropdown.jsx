@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 import LogoutButton from "../components/LogoutButton";
 
 const Dropdown = () => {
+  // const { username } = useSelector((state) => state.auth.user);
+  const username = "toghrul";
   const [isShown, setIsShown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -49,7 +52,7 @@ const Dropdown = () => {
       >
         <div role="none" className="py-1">
           <Link
-            to="/profile/toghrul"
+            to={`/profile/${username}`}
             className="block px-4 py-2 text-lg text-white"
           >
             Profile
