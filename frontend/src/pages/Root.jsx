@@ -33,7 +33,8 @@ const Root = () => {
           addSocketListeners(s, (data) =>
             dispatch(onlineActions.setStateProp(data))
           );
-          s.on("nextRound", () => dispatch(onlineActions.playAgain()));
+          s.on("nextRound", () => dispatch(onlineActions.nextRound()));
+          s.on("playAgain", () => dispatch(onlineActions.playAgain()));
         } catch (error) {
           console.log("Socket error");
           console.error(error);

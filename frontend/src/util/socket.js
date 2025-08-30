@@ -3,21 +3,21 @@ import { io } from "socket.io-client";
 export const createSocket = () => {
   // Reuse global socket if it exists (for Vite HMR)
   const socket =
-    globalThis.socket ||
+    globalThis.socket || //! Remove in production
     io("http://localhost:3000", {
       withCredentials: true,
       autoConnect: false,
     });
 
   // Save socket globally for HMR
-  if (!globalThis.socket) globalThis.socket = socket;
+  if (!globalThis.socket) globalThis.socket = socket; //! Remove in production
 
   // Remove previous listeners to avoid duplicates after HMR
   socket.removeAllListeners();
 
   // Re-attach listeners
   socket.on("connect", () => {
-    console.log("✅ Connected to server:", socket.id);
+    console.log("✅ Connected to server:", socket.id)
   });
 
   socket.on("disconnect", (reason) => {

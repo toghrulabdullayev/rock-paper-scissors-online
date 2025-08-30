@@ -43,7 +43,7 @@ export const onlineStore = createSlice({
       state.playerMove = action.payload;
     },
 
-    playAgain: (state) => {
+    nextRound: (state) => {
       state.playerMove = null;
       state.winner = null;
     },
@@ -54,14 +54,17 @@ export const onlineStore = createSlice({
       } else if (
         WINS[action.payload.move].includes(action.payload.opponentMove)
       ) {
-        state.score += 1;
         state.winner = "Win";
       } else {
-        state.score -= 1;
         state.winner = "Lose";
       }
+    },
 
-      localStorage.setItem("score", state.score);
+    playAgain: (state) => {
+      console.log("play again")
+      state.outcome = null;
+      state.playerMove = null;
+      state.winner = null;
     },
   },
 });

@@ -41,7 +41,7 @@ const LobbyPage = () => {
   };
 
   return !isInRoom ? (
-    <div className="mt-16 flex flex-col justify-between items-center h-fit bg-cyan-500">
+    <div className="mt-16 flex flex-col justify-between items-center h-fit">
       <AnimatePresence>
         {isOpen && (
           <Modal ref={dialogRef} setIsOpen={setIsOpen} title="New Room">
@@ -75,8 +75,8 @@ const LobbyPage = () => {
       <Button className="self-end" onClick={handleIsOpen}>
         Create New Room
       </Button>
-      <div className="mt-12 flex flex-row flex-wrap">
-        {!rooms.length && "No rooms available"}
+      <div className="mt-12 flex flex-row flex-wrap text-gray-text">
+        {!rooms.length && <p className="text-xl">No rooms available</p>}
         {!!rooms.length &&
           rooms.map((room, index) => (
             <Button
@@ -84,16 +84,18 @@ const LobbyPage = () => {
               key={index}
               onClick={() => handleJoinRoom(room)}
             >
-              {room.roomId}
-              {/* {room.player1.name || "—"} {room.player1.score} -{" "}
-                {room.player2.score} {room.player2.name || "—"} */}
+              {/* {room.roomId} */}
+              {room.users[1]?.username || "—"} {room.users[1]?.score} -{" "}
+                {room.users[0]?.score} {room.users[0]?.username || "—"}
             </Button>
           ))}
       </div>
     </div>
   ) : !hasBegun ? (
-    <div className="mt-16 flex flex-col justify-between items-center h-fit bg-cyan-500">
-      <h1>Waiting for another player to join...</h1>
+    <div className="mt-16 flex flex-col justify-between items-center h-fit">
+      <h1 className="text-gray-text text-xl">
+        Waiting for another player to join...
+      </h1>
       <Button className="mt-8" onClick={handleLeaveRoom}>
         Leave
       </Button>

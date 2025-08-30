@@ -32,7 +32,7 @@ const io = new Server(server, {
 const userSocketMap = {};
 const socketUserMap = {};
 
-// {roomId, score, users: [{userId, score, gesture}]} ✅
+// {roomId, score, winner, users: [{userId, score, gesture}]} ✅
 const rooms = [];
 
 // ez
@@ -60,6 +60,11 @@ io.use(async (socket, next) => {
     }
 
     const data = await response.json();
+
+    if (userSocketMap[data.user?._id]) {
+      console.log("Repeated socket connection attempt:", socket.id);
+      return next(new Error("Already connected to socket"));
+    }
 
     socket.user = data.user; // attach authenticated user info to socket
     next();
@@ -93,7 +98,7 @@ io.on("connection", (socket) => {
 
   // get rooms list whenever connected
   const availableRooms = rooms.filter((room) => room.users.length < 2);
-  io.emit("roomsList", availableRooms);
+  io.emit("roomsList", rooms);
 
   // binding socket.id with userId (imitating userId)
   userSocketMap[userId] = socket.id;
@@ -127,6 +132,7 @@ io.on("connection", (socket) => {
       rooms.push({
         roomId,
         score,
+        winner: null,
         users: [
           {
             userId: socket.user._id,
@@ -137,7 +143,7 @@ io.on("connection", (socket) => {
         ],
       });
       const availableRooms = rooms.filter((room) => room.users.length < 2);
-      io.emit("roomsList", availableRooms);
+      io.emit("roomsList", rooms);
 
       // for leave button in frontend
       socket.emit("isInRoom", true);
@@ -164,26 +170,37 @@ io.on("connection", (socket) => {
 
       // filtering full rooms
       const availableRooms = rooms.filter((room) => room.users.length < 2);
-      io.emit("roomsList", availableRooms);
+      io.emit("roomsList", rooms);
       // io.to(roomId).emit("getPlayers", rooms[findRoomIndex(roomId)].users);
       //! cibiti code 1.0
       // io.to(roomId).emit("getPlayers", getOrderedPlayers(roomId, socket));
+
       //! cibiti code 2.0
       sendPlayersOrdered(roomId);
-
       io.to(roomId).emit("beginGame", isRoomFull(roomId));
     }
   });
 
   socket.on("playGesture", (gesture) => {
     const roomId = [...socket.rooms][1];
+    if (!roomId) {
+      console.log("Not in a room");
+      return;
+    }
+
     const room = rooms[findRoomIndex(roomId)];
 
     const player = room.users.find((user) => user.userId === socket.user._id);
     if (player.gesture) {
+      console.log("Already played");
       return;
     }
+
     const opponent = room.users.find((user) => user.userId !== socket.user._id);
+    if (!opponent) {
+      console.log("Wait for the 2nd player");
+      return;
+    }
 
     console.log("Player", player);
 
@@ -214,6 +231,10 @@ io.on("connection", (socket) => {
         opponent.score += 1;
       }
 
+      // filtering full rooms
+      const availableRooms = rooms.filter((room) => room.users.length < 2);
+      io.emit("roomsList", rooms);
+
       if (player.score >= room.score || opponent.score >= room.score) {
         // similar strategy as the sendPlayersOrdered function below
         for (const roomPlayer of room.users) {
@@ -227,29 +248,70 @@ io.on("connection", (socket) => {
           if (player.score > opponent.score) {
             if (player.userId === socketUserMap[socketId]) {
               outcome = "You won!";
+              room.winner = player.username;
             } else if (opponent.userId === socketUserMap[socketId]) {
               outcome = "You lost!";
+              room.winner = opponent.username;
             }
           } else {
             if (player.userId === socketUserMap[socketId]) {
               outcome = "You lost!";
+              room.winner = opponent.username;
             } else if (opponent.userId === socketUserMap[socketId]) {
               outcome = "You won!";
+              room.winner = player.username;
             }
           }
 
           io.to(socketId).emit("gameOver", outcome);
         }
+      } else {
+        // nextRound
+        setTimeout(() => {
+          player.gesture = null;
+          opponent.gesture = null;
+          sendPlayersOrdered(roomId);
+          io.to(roomId).emit("nextRound");
+        }, 5000);
       }
-
-      // nextRound
-      setTimeout(() => {
-        player.gesture = null;
-        opponent.gesture = null;
-        sendPlayersOrdered(roomId);
-        io.to(roomId).emit("nextRound");
-      }, 5000);
     }
+  });
+
+  socket.on("playAgain", () => {
+    const roomId = [...socket.rooms][1];
+    if (!roomId) {
+      console.log("Not in a room");
+      return;
+    }
+
+    const room = rooms[findRoomIndex(roomId)];
+    if (!room.winner) {
+      console.log("Unfinished game");
+      return;
+    }
+
+    const player = room.users.find((user) => user.userId === socket.user._id);
+
+    player.playAgain = true;
+
+    const opponent = room.users.find((user) => user.userId !== socket.user._id);
+    if (!opponent) {
+      console.log("Wait for the 2nd player");
+      return;
+    }
+
+    if ((!player.playAgain || !opponent.playAgain) && opponent.gesture) return;
+
+    room.winner = null;
+    player.score = 0;
+    player.gesture = null;
+    opponent.score = 0;
+    opponent.gesture = null;
+
+    sendPlayersOrdered(roomId);
+    io.to(roomId).emit("playAgain", isRoomFull(roomId));
+    delete player.playAgain;
+    delete opponent.playAgain;
   });
 
   socket.on("leaveRoom", () => {
@@ -267,7 +329,7 @@ io.on("connection", (socket) => {
 
       // filtering full rooms
       const availableRooms = rooms.filter((room) => room.users.length < 2);
-      io.emit("roomsList", availableRooms);
+      io.emit("roomsList", rooms);
     }
   });
 
@@ -284,11 +346,12 @@ io.on("connection", (socket) => {
 
     console.log("User disconnected:", socket.id);
     delete socketUserMap[socket.id];
+    delete userSocketMap[socket.user._id];
 
     socket.emit("isInRoom", false);
 
     const availableRooms = rooms.filter((room) => room.users.length < 2);
-    io.emit("roomsList", availableRooms);
+    io.emit("roomsList", rooms);
   });
 });
 

@@ -68,20 +68,20 @@ const SettingsPage = () => {
           placeholder="Display Name"
           defaultValue={user.displayName || ""}
         />
-        <Input
+        {/* <Input
           type="text"
           id="username"
           name="username"
           placeholder="Username"
           defaultValue={user.username || ""}
-        />
-        <Input
+        /> */}
+        {/* <Input
           type="email"
           id="email"
           name="email"
           placeholder="Email"
           defaultValue={user.email || ""}
-        />
+        /> */}
         {/* <Input
           type="password"
           id="password"

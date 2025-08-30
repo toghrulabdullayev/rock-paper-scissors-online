@@ -8,10 +8,18 @@ import OpponentGesture from "./OpponentGesture";
 import { onlineActions } from "../store/online";
 
 const OnlineRound = ({ move }) => {
-  const winner = useSelector((state) => state.online.winner);
+  const { socket, winner, outcome } = useSelector((state) => state.online);
   const dispatch = useDispatch();
 
   const gesture = GESTURES.find((gesture) => gesture.move === move);
+
+  const handlePlayAgain = () => {
+    socket.emit("playAgain");
+  };
+
+  const handleLeaveRoom = () => {
+    socket.emit("leaveRoom");
+  };
 
   return (
     <>
@@ -37,13 +45,17 @@ const OnlineRound = ({ move }) => {
             <h1 className="uppercase text-white text-center text-5xl">
               {winner === "Tie" ? "Tie" : "You " + winner}
             </h1>
-            {/* <Button
-              onClick={() => dispatch(onlineActions.playAgain())}
-              fill
-              className="w-full mt-6"
-            >
-              Play Again
-            </Button> */}
+            {outcome && (
+              <>
+                {" "}
+                <Button onClick={handlePlayAgain} fill className="w-full mt-6">
+                  Play Again
+                </Button>
+                <Button onClick={handleLeaveRoom} className="w-full mt-6">
+                  Leave Room
+                </Button>
+              </>
+            )}
           </motion.div>
         )}
 
@@ -58,13 +70,21 @@ const OnlineRound = ({ move }) => {
           <h1 className="uppercase text-white text-center text-7xl">
             {winner === "Tie" ? "Tie" : "You " + winner}
           </h1>
-          {/* <Button
-            onClick={() => dispatch(onlineActions.playAgain())}
-            fill
-            className="w-full mt-6 py-5"
-          >
-            Play Again
-          </Button> */}
+          {outcome && (
+            <>
+              {" "}
+              <Button
+                onClick={handlePlayAgain}
+                fill
+                className="w-full mt-6 py-5"
+              >
+                Play Again
+              </Button>{" "}
+              <Button onClick={handleLeaveRoom} className="w-full mt-6 py-5">
+                Leave Room
+              </Button>
+            </>
+          )}
         </motion.div>
       )}
     </>
