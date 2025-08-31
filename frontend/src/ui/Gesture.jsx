@@ -2,8 +2,6 @@ import { motion } from "motion/react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation } from "react-router-dom";
 
-// import { onlineActions } from "../store/online";
-import { onlineActions } from "../store/online";
 import { gameActions } from "../store/game";
 
 const Gesture = ({ move, img, styles, position, disabled }) => {
@@ -14,7 +12,6 @@ const Gesture = ({ move, img, styles, position, disabled }) => {
   const handleMove = () => {
     if (location.pathname === "/online") {
       socket.emit("playGesture", move);
-      dispatch(onlineActions.selectPlayerMove(move));
     } else {
       dispatch(gameActions.selectMove(move));
     }

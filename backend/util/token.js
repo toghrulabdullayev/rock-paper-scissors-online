@@ -12,6 +12,10 @@ export const generateRefreshToken = (user, isRemember = false) => {
   });
 };
 
+export const decodeRefreshToken = (token) => {
+  return jwt.decode(token, process.env.JWT_REFRESH_TOKEN_SECRET);
+};
+
 export const generateResetToken = (email) => {
   return jwt.sign({ email }, process.env.JWT_RESET_TOKEN_SECRET, {
     expiresIn: "10m",

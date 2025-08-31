@@ -29,8 +29,8 @@ const io = new Server(server, {
 
 // socket.id associated with userId ({socketId: userId}) ✅
 // const users = {};
-const userSocketMap = {};
-const socketUserMap = {};
+export const userSocketMap = {};
+export const socketUserMap = {};
 
 // {roomId, score, winner, users: [{userId, score, gesture}]} ✅
 const rooms = [];
@@ -158,6 +158,8 @@ io.on("connection", (socket) => {
       isRoomExists(roomId) &&
       isValidRoomId(roomId)
     ) {
+      const room = rooms[findRoomIndex(roomId)];
+
       socket.join(roomId);
       socket.joinedRoom = roomId;
 
@@ -171,13 +173,36 @@ io.on("connection", (socket) => {
       // filtering full rooms
       const availableRooms = rooms.filter((room) => room.users.length < 2);
       io.emit("roomsList", rooms);
-      // io.to(roomId).emit("getPlayers", rooms[findRoomIndex(roomId)].users);
-      //! cibiti code 1.0
-      // io.to(roomId).emit("getPlayers", getOrderedPlayers(roomId, socket));
 
-      //! cibiti code 2.0
       sendPlayersOrdered(roomId);
-      io.to(roomId).emit("beginGame", isRoomFull(roomId));
+
+      const player = room.users.find((user) => user.userId === socket.user._id);
+
+      const opponent = room.users.find(
+        (user) => user.userId !== socket.user._id
+      );
+      if (!opponent) {
+        console.log("Waiting for another player to join");
+        return;
+      }
+
+      if ((opponent.gesture && opponent.playAgain) || !opponent.gesture) {
+        console.log("Play again");
+
+        room.winner = null;
+        player.score = 0;
+        player.gesture = null;
+        opponent.score = 0;
+        opponent.gesture = null;
+
+        io.to(roomId).emit("beginGame", isRoomFull(roomId));
+
+        sendPlayersOrdered(roomId);
+
+        io.to(roomId).emit("playAgain");
+        delete player.playAgain;
+        delete opponent.playAgain;
+      }
     }
   });
 
@@ -201,6 +226,9 @@ io.on("connection", (socket) => {
       console.log("Wait for the 2nd player");
       return;
     }
+
+    // synchronize with ui (e.g. when a player calls this event from console)
+    socket.emit("playGesture", gesture);
 
     console.log("Player", player);
 
@@ -294,6 +322,8 @@ io.on("connection", (socket) => {
 
     player.playAgain = true;
 
+    console.log(player, "agreed to play again");
+
     const opponent = room.users.find((user) => user.userId !== socket.user._id);
     if (!opponent) {
       console.log("Wait for the 2nd player");
@@ -308,8 +338,11 @@ io.on("connection", (socket) => {
     opponent.score = 0;
     opponent.gesture = null;
 
+    io.to(roomId).emit("beginGame", isRoomFull(roomId));
+
     sendPlayersOrdered(roomId);
-    io.to(roomId).emit("playAgain", isRoomFull(roomId));
+
+    io.to(roomId).emit("playAgain");
     delete player.playAgain;
     delete opponent.playAgain;
   });
@@ -326,6 +359,8 @@ io.on("connection", (socket) => {
 
       // whether to show leave button in frontend or not
       socket.emit("isInRoom", false);
+      socket.emit("beginGame", false); // accountable for hasBegun prop in frontend
+      socket.emit("playGesture", null); // reset playerMove
 
       // filtering full rooms
       const availableRooms = rooms.filter((room) => room.users.length < 2);
@@ -349,6 +384,7 @@ io.on("connection", (socket) => {
     delete userSocketMap[socket.user._id];
 
     socket.emit("isInRoom", false);
+    socket.emit("beginGame", false); // accountable for hasBegun prop in frontend
 
     const availableRooms = rooms.filter((room) => room.users.length < 2);
     io.emit("roomsList", rooms);
@@ -408,7 +444,6 @@ const findRoomIndex = (roomId) => {
   return rooms.findIndex((room) => room.roomId === roomId);
 };
 
-//! cibiti code 2.0
 const sendPlayersOrdered = (roomId) => {
   const room = rooms[findRoomIndex(roomId)];
   if (!room) return;

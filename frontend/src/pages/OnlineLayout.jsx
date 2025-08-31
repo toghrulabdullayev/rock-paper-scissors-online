@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 // import { useQuery } from "@tanstack/react-query";
 
 import { authStatus } from "../util/http";
@@ -8,6 +8,7 @@ import { authStatus } from "../util/http";
 // u need tanstack query asap
 const Online = () => {
   const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const { socket } = useSelector((state) => state.online);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -16,6 +17,7 @@ const Online = () => {
       setIsCheckingAuth(true);
       try {
         await authStatus();
+        socket.connect();
       } catch (error) {
         console.log(error);
         navigate("/auth?mode=login", { state: { isAuthChecked: true } });

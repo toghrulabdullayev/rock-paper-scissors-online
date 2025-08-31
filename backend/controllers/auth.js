@@ -3,11 +3,13 @@ import { Resend } from "resend";
 
 import User from "../models/User.js";
 import {
+  decodeRefreshToken,
   generateAccessToken,
   generateRefreshToken,
   generateResetToken,
   verifyResetToken,
 } from "../util/token.js";
+import { io, userSocketMap } from "../util/socket.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -149,9 +151,11 @@ export const login = async (req, res, next) => {
   }
 };
 
-export const logout = async (_, res) => {
+export const logout = async (req, res) => {
+  const { user } = decodeRefreshToken(req.cookies.refreshToken);
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
+  io.sockets.sockets.get(userSocketMap[user._id]).disconnect(true);
   return res.status(200).json({ message: "User logged out successfully" });
 };
 

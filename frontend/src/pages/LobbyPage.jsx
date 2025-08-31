@@ -85,8 +85,8 @@ const LobbyPage = () => {
               onClick={() => handleJoinRoom(room)}
             >
               {/* {room.roomId} */}
-              {room.users[1]?.username || "—"} {room.users[1]?.score} -{" "}
-                {room.users[0]?.score} {room.users[0]?.username || "—"}
+              {room.users[1]?.username || "........"} {room.users[1]?.score} -{" "}
+                {room.users[0]?.score} {room.users[0]?.username || "........"}
             </Button>
           ))}
       </div>

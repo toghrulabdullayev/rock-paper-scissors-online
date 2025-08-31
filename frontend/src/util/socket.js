@@ -32,6 +32,7 @@ const SOCKET_EVENTS = [
   { eventName: "isInRoom", prop: "isInRoom" },
   { eventName: "beginGame", prop: "hasBegun" },
   { eventName: "getPlayers", prop: "players" },
+  {eventName: "playGesture", prop: "playerMove"},
   { eventName: "gameOver", prop: "outcome" },
 ];
 
